@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Repository
 public class PassengerRepository {
     private final Map<UUID, Passenger> passengers = new ConcurrentHashMap<>();
 
