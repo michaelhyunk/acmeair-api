@@ -8,9 +8,6 @@ import com.acmeair.api.service.BookingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,8 +17,6 @@ import java.util.stream.Collectors;
 public class BookingController {
     private final BookingService service;
     private final BookingMapper mapper;
-    
-    private static final Logger log = LoggerFactory.getLogger(BookingController.class);
 
     public BookingController(BookingService service, BookingMapper mapper) {
         this.service = service;
@@ -30,10 +25,7 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<List<BookingResponseDto>> getAllBookings() {
-        log.info("GET /bookings called");
         List<Booking> bookings = service.getAllBookings();
-        
-        log.debug("Fetched {} bookings", bookings.size());
         List<BookingResponseDto> result = bookings.stream()
             .map(mapper::toDto)
             .collect(Collectors.toList());
@@ -43,9 +35,6 @@ public class BookingController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponseDto> getBookingById(@PathVariable("id") UUID id) {
-        log.info("GET /bookings/{} called");
-        log.debug("Fetching booking by ID: {}", id);
-
         Booking booking = service.getBookingById(id);
         BookingResponseDto result = mapper.toDto(booking);
 
@@ -54,9 +43,6 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<BookingResponseDto> createBooking(@RequestBody BookingRequestDto requestDto) {
-        log.info("POST /bookings called");
-        log.debug("Booking request body: {}", requestDto);
-
         Booking newBooking = service.createBooking(requestDto);
         BookingResponseDto result = mapper.toDto(newBooking);
 
@@ -65,9 +51,6 @@ public class BookingController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BookingResponseDto> updateBooking(@PathVariable("id") UUID id, @RequestBody BookingRequestDto requestDto) {
-        log.info("PUT /bookings/ called");
-        log.debug("Update booking ID: {}, payload: {}", id, requestDto);
-
         Booking updatedBooking = service.updateBooking(id, requestDto);
         BookingResponseDto result = mapper.toDto(updatedBooking);
 
@@ -75,10 +58,7 @@ public class BookingController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelBooking(@PathVariable("id") UUID id) {
-        log.info("DELETE /bookings/ called");
-        log.debug("Cancelling booking with ID: {}", id);
-        
+    public ResponseEntity<Void> cancelBooking(@PathVariable("id") UUID id) {        
         service.cancelBooking(id);
         return ResponseEntity.noContent().build();
     }
