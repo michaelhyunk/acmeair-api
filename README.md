@@ -87,14 +87,14 @@ You should not need to manually verify functionality.
 
 ## Assumptions Made
 
-- Each booking is for one passenger and one flight only. Did not consider single booking with multiple passengers.
+- Each booking is for one passenger and one flight only. Did not consider single booking with multiple passengers
+- For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
 - Because filters with other UUIDs like passengerId, or flightId was not specified, did not fully consider DB relationship. Instead focused heavily on Java and it's difference with .NET
 - Booking status is `CONFIRMED` by default, and is `CANCELLED` when cancelled
 - Data is stored entirely in memory as per requirement
 - No authentication or authorization included
 - Passenger IDs are UUIDs with no additional validation
 - Trunk-based development was used instead of branching, considering the scope and time constraints
-- For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
 
 ---
 
