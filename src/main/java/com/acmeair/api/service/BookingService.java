@@ -61,4 +61,29 @@ public class BookingService {
 
         return booking;
     }
+
+    public Booking updateBooking(UUID id, BookingRequestDto dto) {
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new BookingNotFoundException(id));
+        
+        booking.setPassengerId(dto.getPassengerId());
+        booking.setFlightId(dto.getFlightId());
+
+        return bookingRepository.save(booking);
+    }
+
+    public void cancelBooking(UUID id) {
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new BookingNotFoundException(id));
+
+        if (booking.getStatus() != BookingStatus.CANCELLED) {
+            booking.setStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+
+            flightRepository.findById(booking.getFlightId()).ifPresent(flight -> {
+                flight.setBookedSeats((flight.getBookedSeats() - 1));
+                flightRepository.save(flight);
+            });
+        }
+    }
 }

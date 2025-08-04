@@ -154,4 +154,106 @@ public class BookingServiceTest {
         
         assertTrue(thrown.getMessage().contains(dto.getFlightId().toString()));
     }
+
+    @Test
+    void updateBooking_shouldUpdatePassengerAndFlight() {
+        UUID bookingId = UUID.randomUUID();
+        UUID originalFlightId = UUID.randomUUID();
+        UUID updatedFlightId = UUID.randomUUID();
+        UUID originalPassengerId = UUID.randomUUID();
+        UUID updatedPassengerId = UUID.randomUUID();
+
+        Booking originalBooking = new Booking(
+            bookingId,
+            originalFlightId,
+            originalPassengerId,
+            BookingStatus.CONFIRMED
+        );
+
+        BookingRequestDto updateDto = new BookingRequestDto();
+        updateDto.setFlightId(updatedFlightId);
+        updateDto.setPassengerId(updatedPassengerId);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
+        when(bookingRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = service.updateBooking(bookingId, updateDto);
+
+        assertEquals(updatedFlightId, result.getFlightId());
+        assertEquals(updatedPassengerId, result.getPassengerId());
+        verify(bookingRepository).save(result);
+    }
+
+    @Test
+    void updateBooking_shouldThrowIfNotFound() {
+        UUID id = UUID.randomUUID();
+        when(bookingRepository.findById(id)).thenReturn(Optional.empty());
+
+        BookingRequestDto dto = new BookingRequestDto();
+        dto.setFlightId(UUID.randomUUID());
+        dto.setPassengerId(UUID.randomUUID());
+
+        assertThrows(BookingNotFoundException.class, () -> service.updateBooking(id, dto));
+    }
+
+    @Test
+    void cancelBooking_shouldSetStatusCancelledAndDecrementSeats() {
+        UUID bookingId = UUID.randomUUID();
+        UUID flightId = UUID.randomUUID();
+
+        Booking booking = new Booking(
+            bookingId,
+            flightId,
+            UUID.randomUUID(),
+            BookingStatus.CONFIRMED
+        );
+
+        Flight flight = new Flight(
+                flightId,
+                "NZ123",
+                100,
+                50,
+                "AKL",
+                "WLG",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(1)
+        );
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(flightRepository.findById(flightId)).thenReturn(Optional.of(flight));
+
+        service.cancelBooking(bookingId);
+
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        assertEquals(49, flight.getBookedSeats());
+        verify(bookingRepository).save(booking);
+        verify(flightRepository).save(flight);
+    }
+
+    @Test
+    void cancelBooking_shouldDoNothingIfAlreadyCancelled() {
+        UUID bookingId = UUID.randomUUID();
+
+        Booking booking = new Booking(
+            bookingId,
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+            BookingStatus.CANCELLED);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        service.cancelBooking(bookingId);
+
+        // No change, but still verify save is NOT called
+        verify(bookingRepository, never()).save(booking);
+        verify(flightRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelBooking_shouldThrowIfNotFound() {
+        UUID id = UUID.randomUUID();
+        when(bookingRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(BookingNotFoundException.class, () -> service.cancelBooking(id));
+    }
 }

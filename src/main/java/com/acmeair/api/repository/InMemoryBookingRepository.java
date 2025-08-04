@@ -18,8 +18,17 @@ public class InMemoryBookingRepository implements BookingRepository {
         return Optional.ofNullable(bookings.get(id));
     }
 
-    public void save(Booking booking) {
+    public Booking save(Booking booking) {
         bookings.put(booking.getId(), booking);
+        return booking;
+    }
+
+    public void deleteById(UUID id) {
+        bookings.remove(id);
+    }
+
+    public boolean existsById(UUID id) {
+        return bookings.containsKey(id);
     }
 
     // TODO: Create for findby; passenger & flight. Also create status updates like cancel & confirm/creation
