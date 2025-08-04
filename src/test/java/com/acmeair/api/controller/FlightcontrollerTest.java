@@ -5,7 +5,6 @@ import com.acmeair.api.service.FlightService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -18,18 +17,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FlightController.class)
-public class FlightcontrollerTest {
+public class FlightControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
     private FlightService flightService;
 
     @Test
     void shouldReturnAllFlights() throws Exception {
+        UUID id = UUID.randomUUID();
         Flight sampleFlight = new Flight(
-            UUID.randomUUID(),
+            id,
             "AKL",
             "WLG",
             LocalDateTime.now().plusHours(1),
@@ -62,7 +61,7 @@ public class FlightcontrollerTest {
     void shouldReturn404IfFLightNotFound() throws Exception {
         UUID id = UUID.randomUUID();
 
-        when(flightService.getFlightById(id)).thenThrow(new NoSuchElementException("FLight not found"));
+        when(flightService.getFlightById(id)).thenThrow(new NoSuchElementException("Flight not found"));
 
         mockMvc.perform(get("/flights/" + id)).andExpect(status().isNotFound());
     }
