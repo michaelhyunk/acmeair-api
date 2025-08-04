@@ -57,7 +57,7 @@ public class BookingController {
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelBooking(@PathVariable("id") UUID id) {        
         service.cancelBooking(id);
         return ResponseEntity.noContent().build();

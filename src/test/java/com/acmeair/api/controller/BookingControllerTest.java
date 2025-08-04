@@ -151,7 +151,7 @@ public class BookingControllerTest {
 
     @Test
     void shouldCancelBookingSuccessfully() throws Exception {
-        mockMvc.perform(delete("/bookings/" + bookingId))
+        mockMvc.perform(delete("/bookings/" + bookingId + "/cancel"))
                 .andExpect(status().isNoContent());
     }
 
@@ -160,7 +160,7 @@ public class BookingControllerTest {
         doThrow(new BookingNotFoundException(bookingId))
             .when(bookingService).cancelBooking(bookingId);
 
-        mockMvc.perform(delete("/bookings/" + bookingId))
+        mockMvc.perform(delete("/bookings/" + bookingId + "/cancel"))
                 .andExpect(status().isNotFound());
     }
 }

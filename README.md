@@ -63,7 +63,7 @@ http://localhost:8080/swagger-ui.html
 | GET    | `/bookings/{id}`    | Get booking by ID     |
 | POST   | `/bookings`         | Create a booking      |
 | PUT    | `/bookings/{id}`    | Update a booking      |
-| DELETE | `/bookings/{id}`    | Cancel a booking      |
+| PUT    | `/bookings/{id}/cancel`    | Cancel a booking      |
 
 All endpoints return appropriate HTTP status codes and error messages.
 
@@ -125,6 +125,7 @@ You should not need to manually verify functionality.
 - Logging follows best practices (info/debug split, redacted UUIDs in prod)
 - Swagger is integrated for automated API documentation and contract visibility
 - Controller advice is set up for basic error handling, with room for extension
+- No exposure of internal state on idempotent operations. If booking is already cancelled, the system returns early without calling the database or logging identifiers.
 
 ### Testability
 - Services are unit-tested in isolation with mock dependencies
