@@ -19,7 +19,7 @@ public class InMemoryFlightRepository implements FlightRepository {
     }
 
     public void save(Flight flight) {
-        flights.put(flight.id(), flight);
+        flights.put(flight.getId(), flight);
     }
 
     public void saveAll(List<Flight> flightList) {

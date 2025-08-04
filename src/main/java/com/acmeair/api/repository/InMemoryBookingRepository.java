@@ -19,7 +19,7 @@ public class InMemoryBookingRepository implements BookingRepository {
     }
 
     public void save(Booking booking) {
-        bookings.put(booking.id(), booking);
+        bookings.put(booking.getId(), booking);
     }
 
     // TODO: Create for findby; passenger & flight. Also create status updates like cancel & confirm/creation

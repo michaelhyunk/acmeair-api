@@ -43,7 +43,7 @@ public class FlightServiceTest {
         List<Flight> result = service.getAllFlights();
 
         assertEquals(1, result.size());
-        assertEquals("AKL", result.get(0).origin());
+        assertEquals("AKL", result.get(0).getOrigin());
     }
 
     @Test
@@ -64,8 +64,8 @@ public class FlightServiceTest {
 
         Flight result = service.getFlightById(id);
 
-        assertEquals("CHC", result.destination());
-        assertEquals(id, result.id());
+        assertEquals("CHC", result.getDestination());
+        assertEquals(id, result.getId());
     }
 
     @Test

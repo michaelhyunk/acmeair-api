@@ -1,15 +1,18 @@
 package com.acmeair.api.dto.booking;
 
 import java.util.UUID;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 
 public class BookingRequestDto {
     @NotNull
     private UUID flightId;
 
-    @NotBlank
-    private String passengerName;
+    @NotNull
+    private UUID passengerId;
+
+    // Assumption here is that each booking only has 1 passenger
+    // @Min(1)
+    // private int numberOfSeats;
 
     public UUID getFlightId() {
         return flightId;
@@ -19,11 +22,19 @@ public class BookingRequestDto {
         this.flightId = flightId;
     }
 
-    public String getPassengerName() {
-        return passengerName;
+    public UUID getPassengerId() {
+        return passengerId;
     }
 
-    public void setPassengerName(String passengerName) {
-        this.passengerName = passengerName;
+    public void setPassengerId(UUID passengerId) {
+        this.passengerId = passengerId;
     }
+
+    // public int getNumberOfSeats() {
+    //     return numberOfSeats;
+    // }
+
+    // public void setNumberOfSeats(int numberOfSeats) {
+    //     this.numberOfSeats = numberOfSeats;
+    // }
 }

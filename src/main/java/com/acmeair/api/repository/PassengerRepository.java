@@ -19,7 +19,7 @@ public class PassengerRepository {
     }
 
     public void save(Passenger passenger) {
-        passengers.put(passenger.id(), passenger);
+        passengers.put(passenger.getId(), passenger);
     }
 
     public void clear() {
