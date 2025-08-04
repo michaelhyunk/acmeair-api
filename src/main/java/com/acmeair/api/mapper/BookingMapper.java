@@ -13,5 +13,6 @@ public interface BookingMapper {
     @Mapping(target = "status", constant = "CONFIRMED")
     Booking toModel(BookingRequestDto dto);
 
+    @Mapping(source = "id", target = "bookingId")
     BookingResponseDto toDto(Booking booking);
 }
