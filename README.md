@@ -94,6 +94,7 @@ You should not need to manually verify functionality.
 - No authentication or authorization included
 - Passenger IDs are UUIDs with no additional validation
 - Trunk-based development was used instead of branching, considering the scope and time constraints
+- For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
 
 ---
 
@@ -106,6 +107,7 @@ You should not need to manually verify functionality.
 - Integration tests with real database
 - API versioning, sorting, filtering
 - Retry/backoff strategies (e.g. jitter/delay) are not yet implemented
+- Introduce `TestData.java` as a centralized test fixture to streamline setup, remove duplicated data creation in unit tests, and enforce immutability patterns more cleanly in DTOs
 
 ---
 
