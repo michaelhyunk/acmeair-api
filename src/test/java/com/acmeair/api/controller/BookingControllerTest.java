@@ -72,6 +72,7 @@ public class BookingControllerTest {
     @Test
     void shouldReturnAllBooking() throws Exception {
         when(bookingService.getAllBookings()).thenReturn(List.of(booking));
+        when(bookingMapper.toDto(booking)).thenReturn(responseDto); 
 
         mockMvc.perform(get("/bookings"))
             .andExpect(status().isOk())
@@ -85,6 +86,7 @@ public class BookingControllerTest {
     @Test
     void shouldReturnBookingById() throws Exception {
         when(bookingService.getBookingById(bookingId)).thenReturn(booking);
+        when(bookingMapper.toDto(booking)).thenReturn(responseDto); 
 
         mockMvc.perform(get("/bookings/" + bookingId))
             .andExpect(status().isOk())
@@ -114,7 +116,7 @@ public class BookingControllerTest {
     void shouldCreateBookingSuccessfully() throws Exception {
         when(bookingMapper.toModel(any())).thenReturn(booking);
         when(bookingService.createBooking(requestDto)).thenReturn(booking);
-        when(bookingMapper.toDto(booking)).thenReturn(responseDto);
+        when(bookingMapper.toDto(any())).thenReturn(responseDto);
 
         mockMvc.perform(post("/bookings")
                 .contentType(MediaType.APPLICATION_JSON)
