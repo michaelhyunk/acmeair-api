@@ -96,7 +96,7 @@ Includes:
 - Global exception formatting (`ErrorResponse`). There's some level of exception formatting, but not enough
 - Field-level validation messages returned in structured format
 - Pagination for `GET /flights` and `GET /bookings`
-- Any files required for deployment automation, like Dockerfile
+- Any files required for deployment automation, like Dockerfile or YML file for Azure App Service
 - Integration tests with real database
 - API versioning, sorting, filtering
 - Any retries with delay + jitter where appropriate
