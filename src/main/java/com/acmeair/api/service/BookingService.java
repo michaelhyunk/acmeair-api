@@ -44,7 +44,7 @@ public class BookingService {
             .orElseThrow(() -> new FlightNotFoundException(dto.getFlightId()));
 
         if (flight.getBookedSeats() + 1 > flight.getTotalSeats()) {
-            throw new NoSeatAvailableException(flight.getId()); //TOOD: custom exception
+            throw new NoSeatAvailableException(flight.getId());
         }
 
         Booking booking = new Booking(
