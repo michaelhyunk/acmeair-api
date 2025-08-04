@@ -125,9 +125,11 @@ You should not need to manually verify functionality.
 - Logging follows best practices (info/debug split, redacted UUIDs in prod)
 - Swagger is integrated for automated API documentation and contract visibility
 - Controller advice is set up for basic error handling, with room for extension
-- No exposure of internal state on idempotent operations. If booking is already cancelled, the system returns early without calling the database or logging identifiers.
+- No exposure of internal state on idempotent operations. If booking is already cancelled, the system returns early without calling the database or logging identifiers
+- Repositories are interface-based so switching to a real DB is trivial
 
 ### Testability
 - Services are unit-tested in isolation with mock dependencies
 - Controllers are tested via `@WebMvcTest` and mocked services
 - Tests are split by responsibility and cover both success and failure paths
+- Unit tests can be run via CLI and can easily add a job in CI/CD pipelines on build
