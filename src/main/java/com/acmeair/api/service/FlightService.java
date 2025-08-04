@@ -7,7 +7,6 @@ import com.acmeair.api.repository.FlightRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.Optional;
 
