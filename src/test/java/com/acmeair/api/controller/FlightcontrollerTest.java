@@ -1,10 +1,16 @@
 package com.acmeair.api.controller;
 
+import com.acmeair.api.dto.flight.FlightResponseDto;
+import com.acmeair.api.exception.FlightNotFoundException;
+import com.acmeair.api.mapper.FlightMapper;
 import com.acmeair.api.model.Flight;
 import com.acmeair.api.service.FlightService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -12,6 +18,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -22,47 +30,72 @@ public class FlightControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
     private FlightService flightService;
+
+    @MockBean
+    private FlightMapper flightMapper;
+
+    private UUID flightId;
+    private Flight flight;
+    private FlightResponseDto dto;
+
+    @BeforeEach
+    void setup() {
+        flightId = UUID.randomUUID();
+        flight = new Flight(
+            flightId,
+            "NZ101",
+            100,
+            50,
+            "AKL",
+            "WLG",
+            LocalDateTime.of(2025, 8, 10, 10, 0),
+            LocalDateTime.of(2025, 8, 10, 13, 0)
+        );
+
+        dto = new FlightResponseDto();
+        dto.setFlightId(flightId);
+        dto.setFlightNumber("NZ101");
+        dto.setTotalSeats(100);
+        dto.setBookedSeats(50);
+
+        when(flightMapper.toDto(flight)).thenReturn(dto);
+    }
 
     @Test
     void shouldReturnAllFlights() throws Exception {
-        UUID id = UUID.randomUUID();
-        Flight sampleFlight = new Flight(
-            id,
-            "AKL",
-            "WLG",
-            LocalDateTime.now().plusHours(1),
-            LocalDateTime.now().plusHours(2)
-        );
-
-        when(flightService.getAllFlights()).thenReturn(List.of(sampleFlight));
+        when(flightService.getAllFlights()).thenReturn(List.of(flight));
 
         mockMvc.perform(get("/flights"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].origin").value("AKL"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].flightId").value(flightId.toString()))
+                .andExpect(jsonPath("$[0].flightNumber").value("NZ101"))
+                .andExpect(jsonPath("$[0].totalSeats").value(100))
+                .andExpect(jsonPath("$[0].bookedSeats").value(50));
     }
 
     @Test
     void shouldReturnFlightById() throws Exception {
-        UUID id = UUID.randomUUID();
-        Flight flight = new Flight(
-            id,
-            "AKL",
-            "CHC",
-            LocalDateTime.now().plusHours(1),
-            LocalDateTime.now().plusHours(2)
-        );
+        when(flightService.getFlightById(flightId)).thenReturn(flight);
 
-        when(flightService.getFlightById(id)).thenReturn(flight);
+        mockMvc.perform(get("/flights/" + flightId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.flightId").value(flightId.toString()))
+            .andExpect(jsonPath("$.flightNumber").value("NZ101"))
+            .andExpect(jsonPath("$.totalSeats").value(100))
+            .andExpect(jsonPath("$.bookedSeats").value(50));
     }
 
     @Test
     void shouldReturn404IfFLightNotFound() throws Exception {
-        UUID id = UUID.randomUUID();
+        UUID missingId = UUID.randomUUID();
 
-        when(flightService.getFlightById(id)).thenThrow(new NoSuchElementException("Flight not found"));
+        when(flightService.getFlightById(missingId))
+                .thenThrow(new FlightNotFoundException(missingId));
 
-        mockMvc.perform(get("/flights/" + id)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/flights/" + missingId))
+                .andExpect(status().isNotFound());
     }
 }

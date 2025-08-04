@@ -1,5 +1,6 @@
 package com.acmeair.api.service;
 
+import com.acmeair.api.exception.FlightNotFoundException;
 import com.acmeair.api.model.Flight;
 import com.acmeair.api.repository.FlightRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,9 @@ public class FlightServiceTest {
         List<Flight> flights = List.of(
             new Flight(
                 id,
+                "NZ101",
+                100,
+                20,
                 "AKL",
                 "WLG",
                 LocalDateTime.now(),
@@ -47,6 +51,9 @@ public class FlightServiceTest {
         UUID id = UUID.randomUUID();
         Flight flight = new Flight(
             id,
+            "NZ101",
+            100,
+            20,
             "AKL",
             "CHC",
             LocalDateTime.now(),
@@ -67,8 +74,11 @@ public class FlightServiceTest {
 
         when(repository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> {
-            service.getFlightById(id);
-        });
+        FlightNotFoundException thrown = assertThrows(
+                FlightNotFoundException.class,
+                () -> service.getFlightById(id)
+        );
+
+        assertTrue(thrown.getMessage().contains(id.toString()));
     }
 }

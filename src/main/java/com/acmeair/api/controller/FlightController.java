@@ -1,5 +1,7 @@
 package com.acmeair.api.controller;
 
+import com.acmeair.api.dto.flight.FlightResponseDto;
+import com.acmeair.api.mapper.FlightMapper;
 import com.acmeair.api.model.Flight;
 import com.acmeair.api.service.FlightService;
 import org.springframework.web.bind.annotation.*;
@@ -12,19 +14,25 @@ import java.util.UUID;
 @RequestMapping("/flights")
 public class FlightController {
     private final FlightService service;
+    private final FlightMapper mapper;
 
-    public FlightController(FlightService service) {
+    public FlightController(FlightService service, FlightMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @GetMapping()
-    public List<Flight> getAllFlights() {
-        return service.getAllFlights();
+    public List<FlightResponseDto> getAllFlights() {
+        List<Flight> flights = service.getAllFlights();
+        return flights.stream()
+            .map(mapper::toDto)
+            .toList();
     }
 
     @GetMapping("/{id}")
-    public Flight getFlightById(@PathVariable UUID id) {
-        return service.getFlightById(id);
+    public FlightResponseDto getFlightById(@PathVariable("id") UUID id) {
+        Flight flight = service.getFlightById(id);
+        return mapper.toDto(flight);
     }
     
 }

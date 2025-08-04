@@ -1,5 +1,6 @@
 package com.acmeair.api.service;
 
+import com.acmeair.api.exception.FlightNotFoundException;
 import com.acmeair.api.model.Flight;
 import com.acmeair.api.repository.FlightRepository;
 
@@ -27,7 +28,7 @@ public class FlightService {
         Optional<Flight> result = repository.findById(id);
 
         if (result.isEmpty()) {
-            throw new NoSuchElementException("Flight not found with id: " + id);
+            throw new FlightNotFoundException(id);
         }
 
         return result.get();

@@ -5,6 +5,9 @@ import java.util.UUID;
 
 public record Flight(
     UUID id,
+    String flightNumber,
+    int totalSeats,
+    int bookedSeats,
     String origin,
     String destination,
     LocalDateTime departureTime,
