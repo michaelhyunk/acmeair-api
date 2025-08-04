@@ -23,7 +23,7 @@ public class FlightServiceTest {
     }
 
     @Test
-    void shouldReturnAllFlights() {
+    void getAllFlights_shouldReturnAllFlights() {
         UUID id = UUID.randomUUID();
         List<Flight> flights = List.of(
             new Flight(
@@ -47,7 +47,7 @@ public class FlightServiceTest {
     }
 
     @Test
-    void shouldReturnFlightById() {
+    void getFlightsById_shouldReturnFlightById() {
         UUID id = UUID.randomUUID();
         Flight flight = new Flight(
             id,
@@ -69,7 +69,7 @@ public class FlightServiceTest {
     }
 
     @Test
-    void shouldThrowWhenFlightNotFound() {
+    void getFlightById_shouldThrowWhenFlightNotFound() {
         UUID id = UUID.randomUUID();
 
         when(repository.findById(id)).thenReturn(Optional.empty());
