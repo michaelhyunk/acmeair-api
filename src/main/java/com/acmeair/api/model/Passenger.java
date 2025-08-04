@@ -2,6 +2,12 @@ package com.acmeair.api.model;
 
 import java.util.UUID;
 
+/**
+*  Naturally thought I'd need this, but eventually decided to keep things light.
+*  Am anticipating this will become useful in the near future, and bind Passenger with Booking and Flight
+*  Decided not to do that just yet, but leave this as is to reflect my intent and design consideration
+**/
+
 public class Passenger {
     private UUID id;
     private String firstName;
