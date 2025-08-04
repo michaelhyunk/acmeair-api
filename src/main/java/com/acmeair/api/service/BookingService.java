@@ -117,20 +117,21 @@ public class BookingService {
                 return new BookingNotFoundException(id);
             });
 
-        if (booking.getStatus() != BookingStatus.CANCELLED) {
-            booking.setStatus(BookingStatus.CANCELLED);
-            bookingRepository.save(booking);
-            log.info("Booking cancelled");
-            log.debug("Booking {} marked as CANCELLED", id);
-
-            flightRepository.findById(booking.getFlightId()).ifPresent(flight -> {
-                flight.setBookedSeats((flight.getBookedSeats() - 1));
-                flightRepository.save(flight);
-                log.debug("Flight {} seat count adjusted to {}", flight.getId(), flight.getBookedSeats());
-            });
-        } else {
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
             log.info("Booking already cancelled");
             log.debug("Booking {} is already cancelled — no action taken", id);
+            return;
         }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+        log.info("Booking cancelled");
+        log.debug("Booking {} marked as CANCELLED", id);
+
+        flightRepository.findById(booking.getFlightId()).ifPresent(flight -> {
+            flight.setBookedSeats(flight.getBookedSeats() - 1);
+            flightRepository.save(flight);
+            log.debug("Flight {} seat count adjusted to {}", flight.getId(), flight.getBookedSeats());
+        });
     }
 }
