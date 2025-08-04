@@ -1,7 +1,8 @@
 package com.acmeair.api.service;
 
 import com.acmeair.api.model.Booking;
-import com.acmeair.api.repository.BookingRepository;
+import com.acmeair.api.model.BookingStatus;
+import com.acmeair.api.repository.InMemoryBookingRepository;
 import com.acmeair.api.exception.BookingNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,18 +12,31 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class BookingServiceTest {
-    private BookingRepository repository;
+    private InMemoryBookingRepository repository;
     private BookingService service;
 
     @BeforeEach
     void setup() {
-        repository = mock(BookingRepository.class);
+        repository = mock(InMemoryBookingRepository.class);
         service = new BookingService(repository);
     }
 
     @Test
     void getAllBookings_shouldReturnListOfBookings() {
-        List<Booking> bookings = List.of(new Booking(), new Booking());
+        List<Booking> bookings = List.of(
+            new Booking(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                BookingStatus.CONFIRMED
+            ),
+            new Booking(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                BookingStatus.CANCELLED
+            )
+        );
         when(repository.findAll()).thenReturn(bookings);
 
         List<Booking> result = service.getAllBookings();
@@ -33,7 +47,13 @@ public class BookingServiceTest {
     @Test
     void getBookingById_shouldReturnBooking() {
         UUID id = UUID.randomUUID();
-        Booking booking = new Booking();
+        Booking booking = new Booking(
+                id,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                BookingStatus.CONFIRMED
+            );
+        
         when(repository.findById(id)).thenReturn(Optional.of(booking));
 
         Booking result = service.getBookingById(id);
