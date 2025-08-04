@@ -89,6 +89,8 @@ You should not need to manually verify functionality.
 
 - Each booking is for one passenger and one flight only. Did not consider single booking with multiple passengers
 - For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
+- Seat-level tracking is not implemented. Each booking assumes 1-to-1 relationship between a passenger and a seat, only total seat availability is checked.
+- A `Seat` model was intentionally omitted to keep domain lightweight. This can be introduced later if seat selection, multiple seat bookings become relevant.
 - Because filters with other UUIDs like passengerId, or flightId was not specified, did not fully consider DB relationship. Instead focused heavily on Java and it's difference with .NET
 - Booking status is `CONFIRMED` by default, and is `CANCELLED` when cancelled
 - Data is stored entirely in memory as per requirement
