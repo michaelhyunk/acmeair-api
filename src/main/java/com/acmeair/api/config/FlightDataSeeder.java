@@ -13,7 +13,7 @@ import java.util.UUID;
 @Configuration
 public class FlightDataSeeder {
     @Bean
-    public CommandLineRunner seedFlights(FlightRepository flightRepository) {
+    CommandLineRunner seedFlights(FlightRepository flightRepository) {
         return args -> {
             UUID id1 = UUID.randomUUID();
             UUID id2 = UUID.randomUUID();
