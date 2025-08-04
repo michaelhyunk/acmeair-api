@@ -6,7 +6,6 @@ public class FlightResponseDto {
     private UUID flightId;
     private String flightNumber;
     private int totalSeats;
-    private int bookedSeats;
 
     public UUID getFlightId() {
         return flightId;
@@ -30,13 +29,5 @@ public class FlightResponseDto {
 
     public void setTotalSeats(int totalSeats) {
         this.totalSeats = totalSeats;
-    }
-
-    public int getBookedSeats() {
-        return bookedSeats;
-    }
-
-    public void setBookedSeats(int bookedSeats) {
-        this.bookedSeats = bookedSeats;
     }
 }

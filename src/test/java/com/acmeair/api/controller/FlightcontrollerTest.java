@@ -44,7 +44,6 @@ public class FlightControllerTest {
             flightId,
             "NZ101",
             100,
-            50,
             "AKL",
             "WLG",
             LocalDateTime.of(2025, 8, 10, 10, 0),
@@ -55,7 +54,6 @@ public class FlightControllerTest {
         dto.setFlightId(flightId);
         dto.setFlightNumber("NZ101");
         dto.setTotalSeats(100);
-        dto.setBookedSeats(50);
 
         when(flightMapper.toDto(flight)).thenReturn(dto);
     }
@@ -69,8 +67,7 @@ public class FlightControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].flightId").value(flightId.toString()))
                 .andExpect(jsonPath("$[0].flightNumber").value("NZ101"))
-                .andExpect(jsonPath("$[0].totalSeats").value(100))
-                .andExpect(jsonPath("$[0].bookedSeats").value(50));
+                .andExpect(jsonPath("$[0].totalSeats").value(100));
     }
 
     @Test
@@ -81,8 +78,7 @@ public class FlightControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.flightId").value(flightId.toString()))
             .andExpect(jsonPath("$.flightNumber").value("NZ101"))
-            .andExpect(jsonPath("$.totalSeats").value(100))
-            .andExpect(jsonPath("$.bookedSeats").value(50));
+            .andExpect(jsonPath("$.totalSeats").value(100));
     }
 
     @Test

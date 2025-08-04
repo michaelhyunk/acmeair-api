@@ -1,6 +1,7 @@
 package com.acmeair.api.repository;
 
 import com.acmeair.api.model.Booking;
+import com.acmeair.api.model.BookingStatus;
 
 import java.util.*;
 

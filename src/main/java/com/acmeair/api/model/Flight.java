@@ -7,7 +7,6 @@ public class Flight {
     private UUID id;
     private String flightNumber;
     private int totalSeats;
-    private int bookedSeats;
     private String origin;
     private String destination;
     private LocalDateTime departureTime;
@@ -15,13 +14,12 @@ public class Flight {
 
     public Flight() {}
 
-    public Flight(UUID id, String flightNumber, int totalSeats, int bookedSeats,
+    public Flight(UUID id, String flightNumber, int totalSeats,
                   String origin, String destination,
                   LocalDateTime departureTime, LocalDateTime arrivalTime) {
         this.id = id;
         this.flightNumber = flightNumber;
         this.totalSeats = totalSeats;
-        this.bookedSeats = bookedSeats;
         this.origin = origin;
         this.destination = destination;
         this.departureTime = departureTime;
@@ -50,14 +48,6 @@ public class Flight {
 
     public void setTotalSeats(int totalSeats) {
         this.totalSeats = totalSeats;
-    }
-
-    public int getBookedSeats() {
-        return bookedSeats;
-    }
-
-    public void setBookedSeats(int bookedSeats) {
-        this.bookedSeats = bookedSeats;
     }
 
     public String getOrigin() {

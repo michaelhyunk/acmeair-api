@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,7 +93,6 @@ public class BookingServiceTest {
             flightId,
             "NZ123",
             100,
-            10,
             "AKL",
             "WLG",
             LocalDateTime.now().plusDays(1),
@@ -101,9 +101,8 @@ public class BookingServiceTest {
 
         when(flightRepository.findById(flightId)).thenReturn(Optional.of(flight));
 
-        BookingRequestDto dto = new BookingRequestDto();
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
         dto.setFlightId(flightId);
-        dto.setPassengerId(UUID.randomUUID());
 
         Booking booking = service.createBooking(dto);
 
@@ -112,14 +111,12 @@ public class BookingServiceTest {
         assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
 
         verify(bookingRepository).save(any(Booking.class));
-        verify(flightRepository).save(any(Flight.class));
     }
 
     @Test
     void createBooking_shouldFail_whenFlightNotFound() {
-        BookingRequestDto dto = new BookingRequestDto();
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
         dto.setFlightId(UUID.randomUUID());
-        dto.setPassengerId(UUID.randomUUID());
 
         FlightNotFoundException thrown = assertThrows(
             FlightNotFoundException.class,
@@ -134,8 +131,7 @@ public class BookingServiceTest {
         Flight flight = new Flight(
             flightId,
             "NZ123",
-            50,
-            50,
+            2,
             "AKL",
             "WLG",
             LocalDateTime.now().plusDays(2),
@@ -144,9 +140,15 @@ public class BookingServiceTest {
 
         when(flightRepository.findById(flightId)).thenReturn(Optional.of(flight));
 
-        BookingRequestDto dto = new BookingRequestDto();
+        List<Booking> existingBookings = List.of(
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED)
+        );
+
+        when(bookingRepository.findAll()).thenReturn(existingBookings);
+
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
         dto.setFlightId(flightId);
-        dto.setPassengerId(UUID.randomUUID());
 
         NoSeatAvailableException thrown = assertThrows(
             NoSeatAvailableException.class,
@@ -160,19 +162,17 @@ public class BookingServiceTest {
         UUID bookingId = UUID.randomUUID();
         UUID originalFlightId = UUID.randomUUID();
         UUID updatedFlightId = UUID.randomUUID();
-        UUID originalPassengerId = UUID.randomUUID();
-        UUID updatedPassengerId = UUID.randomUUID();
+        UUID passengerId = UUID.randomUUID();
 
         Booking originalBooking = new Booking(
             bookingId,
             originalFlightId,
-            originalPassengerId,
+            passengerId,
             BookingStatus.CONFIRMED
         );
 
-        BookingRequestDto updateDto = new BookingRequestDto();
+        BookingRequestDto updateDto = new BookingRequestDto(passengerId);
         updateDto.setFlightId(updatedFlightId);
-        updateDto.setPassengerId(updatedPassengerId);
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
         when(bookingRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -180,7 +180,6 @@ public class BookingServiceTest {
         Booking result = service.updateBooking(bookingId, updateDto);
 
         assertEquals(updatedFlightId, result.getFlightId());
-        assertEquals(updatedPassengerId, result.getPassengerId());
         verify(bookingRepository).save(result);
     }
 
@@ -189,9 +188,8 @@ public class BookingServiceTest {
         UUID id = UUID.randomUUID();
         when(bookingRepository.findById(id)).thenReturn(Optional.empty());
 
-        BookingRequestDto dto = new BookingRequestDto();
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
         dto.setFlightId(UUID.randomUUID());
-        dto.setPassengerId(UUID.randomUUID());
 
         assertThrows(BookingNotFoundException.class, () -> service.updateBooking(id, dto));
     }
@@ -212,7 +210,6 @@ public class BookingServiceTest {
                 flightId,
                 "NZ123",
                 100,
-                50,
                 "AKL",
                 "WLG",
                 LocalDateTime.now().plusDays(1),
@@ -225,9 +222,7 @@ public class BookingServiceTest {
         service.cancelBooking(bookingId);
 
         assertEquals(BookingStatus.CANCELLED, booking.getStatus());
-        assertEquals(49, flight.getBookedSeats());
         verify(bookingRepository).save(booking);
-        verify(flightRepository).save(flight);
     }
 
     @Test
@@ -255,5 +250,64 @@ public class BookingServiceTest {
         when(bookingRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(BookingNotFoundException.class, () -> service.cancelBooking(id));
+    }
+
+    @Test
+    void isFlightFull_shouldReturnFalse_whenSeatsAvailable() throws Exception {
+        UUID flightId = UUID.randomUUID();
+
+        List<Booking> bookings = List.of(
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CANCELLED)
+        );
+
+        when(bookingRepository.findAll()).thenReturn(bookings);
+
+        Method method = BookingService.class.getDeclaredMethod("isFlightFull", UUID.class, int.class);
+        method.setAccessible(true);
+
+        
+        boolean result = (boolean) method.invoke(service, flightId, 2);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void isFlightFull_shouldReturnTrue_whenSeatsFull() throws Exception {
+        UUID flightId = UUID.randomUUID();
+
+        List<Booking> bookings = List.of(
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED)
+        );
+
+        when(bookingRepository.findAll()).thenReturn(bookings);
+
+        Method method = BookingService.class.getDeclaredMethod("isFlightFull", UUID.class, int.class);
+        method.setAccessible(true);
+
+        
+        boolean result = (boolean) method.invoke(service, flightId, 2);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void getConfirmedBookingCount_shouldIgnoreCancelledBookings() throws Exception {
+        UUID flightId = UUID.randomUUID();
+
+        List<Booking> bookings = List.of(
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CANCELLED)
+        );
+
+        when(bookingRepository.findAll()).thenReturn(bookings);
+
+        Method method = BookingService.class.getDeclaredMethod("getConfirmedBookingCount",  UUID.class);
+        method.setAccessible(true);
+
+        // Use reflection or helper method to call getConfirmedBookingCount
+        long count = (long) method.invoke(service, flightId);
+        assertEquals(1, count);
     }
 }

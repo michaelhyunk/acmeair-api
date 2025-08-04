@@ -58,9 +58,8 @@ public class BookingControllerTest {
 
         booking = new Booking(bookingId, flightId, passengerId, BookingStatus.CONFIRMED);
 
-        requestDto = new BookingRequestDto();
+        requestDto = new BookingRequestDto(passengerId);
         requestDto.setFlightId(flightId);
-        requestDto.setPassengerId(passengerId);
 
         responseDto = new BookingResponseDto();
         responseDto.setBookingId(bookingId);

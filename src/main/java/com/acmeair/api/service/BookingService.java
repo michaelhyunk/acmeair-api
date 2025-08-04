@@ -59,9 +59,7 @@ public class BookingService {
                 return new FlightNotFoundException(dto.getFlightId());
             });
 
-        if (flight.getBookedSeats() + 1 > flight.getTotalSeats()) {
-            log.debug("No seat available on flight {} ({} booked / {} total)",
-                flight.getId(), flight.getBookedSeats(), flight.getTotalSeats());
+        if (isFlightFull(dto.getFlightId(), flight.getTotalSeats())) {
             log.warn("No seat available on flight");
             throw new NoSeatAvailableException(flight.getId());
         }
@@ -74,9 +72,6 @@ public class BookingService {
         );
 
         bookingRepository.save(booking);
-
-        flight.setBookedSeats(flight.getBookedSeats() + 1);
-        flightRepository.save(flight);
 
         log.info("Booking successfully created");
         log.debug("Booking created: {} (passenger {}, flight {})",
@@ -95,8 +90,12 @@ public class BookingService {
                 log.warn("Booking to update not found");
                 return new BookingNotFoundException(id);
             });
+
+        if (!booking.getPassengerId().equals(dto.getPassengerId())) {
+            log.warn("Attempt to update passengerId for booking");
+            throw new IllegalArgumentException("Updating passengerId is not allowed");
+        }
         
-        booking.setPassengerId(dto.getPassengerId());
         booking.setFlightId(dto.getFlightId());
 
         Booking updated = bookingRepository.save(booking);
@@ -127,11 +126,16 @@ public class BookingService {
         bookingRepository.save(booking);
         log.info("Booking cancelled");
         log.debug("Booking {} marked as CANCELLED", id);
+    }
 
-        flightRepository.findById(booking.getFlightId()).ifPresent(flight -> {
-            flight.setBookedSeats(flight.getBookedSeats() - 1);
-            flightRepository.save(flight);
-            log.debug("Flight {} seat count adjusted to {}", flight.getId(), flight.getBookedSeats());
-        });
+    private boolean isFlightFull(UUID flightId, int totalSeats) {
+        return getConfirmedBookingCount(flightId) >= totalSeats;
+    }
+
+    private long getConfirmedBookingCount(UUID flightId) {
+        return bookingRepository.findAll().stream()
+            .filter(b -> b.getFlightId().equals(flightId))
+            .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
+            .count();
     }
 }

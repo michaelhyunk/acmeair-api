@@ -8,7 +8,11 @@ public class BookingRequestDto {
     private UUID flightId;
 
     @NotNull
-    private UUID passengerId;
+    private final UUID passengerId;
+
+    public BookingRequestDto(UUID passengerId) {
+        this.passengerId = passengerId;
+    }
 
     // Assumption here is that each booking only has 1 passenger
     // @Min(1)
@@ -24,10 +28,6 @@ public class BookingRequestDto {
 
     public UUID getPassengerId() {
         return passengerId;
-    }
-
-    public void setPassengerId(UUID passengerId) {
-        this.passengerId = passengerId;
     }
 
     // public int getNumberOfSeats() {
