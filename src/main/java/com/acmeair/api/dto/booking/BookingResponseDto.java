@@ -1,11 +1,12 @@
 package com.acmeair.api.dto.booking;
 
 import com.acmeair.api.model.BookingStatus;
+import com.acmeair.api.model.Passenger;
 import java.util.UUID;
 
 public class BookingResponseDto {
     private UUID bookingId;
-    private UUID passengerId;
+    private Passenger passenger;
     private UUID flightId;
     private BookingStatus status;
 
@@ -17,12 +18,12 @@ public class BookingResponseDto {
         this.bookingId = bookingId;
     }
 
-    public UUID getPassengerId() {
-        return passengerId;
+    public Passenger getPassenger() {
+        return passenger;
     }
 
-    public void setPassengerId(UUID passengerId) {
-        this.passengerId = passengerId;
+    public void setPassenger(Passenger passenger) {
+        this.passenger = passenger;
     }
 
     public UUID getFlightId() {

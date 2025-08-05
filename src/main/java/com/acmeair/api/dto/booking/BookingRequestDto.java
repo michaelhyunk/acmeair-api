@@ -1,6 +1,10 @@
 package com.acmeair.api.dto.booking;
 
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.*;
 
 public class BookingRequestDto {
@@ -10,7 +14,12 @@ public class BookingRequestDto {
     @NotNull
     private final UUID passengerId;
 
-    public BookingRequestDto(UUID passengerId) {
+    @JsonCreator
+    public BookingRequestDto(
+        @JsonProperty("flightId") UUID flightId,
+        @JsonProperty("passengerId") UUID passengerId
+    ) {
+        this.flightId = flightId;
         this.passengerId = passengerId;
     }
 

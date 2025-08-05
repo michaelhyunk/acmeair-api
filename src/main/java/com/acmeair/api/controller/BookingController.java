@@ -2,6 +2,7 @@ package com.acmeair.api.controller;
 
 import com.acmeair.api.dto.booking.BookingRequestDto;
 import com.acmeair.api.dto.booking.BookingResponseDto;
+import com.acmeair.api.dto.booking.BookingUpdateDto;
 import com.acmeair.api.mapper.BookingMapper;
 import com.acmeair.api.model.Booking;
 import com.acmeair.api.service.BookingService;
@@ -50,7 +51,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookingResponseDto> updateBooking(@PathVariable("id") UUID id, @RequestBody BookingRequestDto requestDto) {
+    public ResponseEntity<BookingResponseDto> updateBooking(@PathVariable("id") UUID id, @RequestBody BookingUpdateDto requestDto) {
         Booking updatedBooking = service.updateBooking(id, requestDto);
         BookingResponseDto result = mapper.toDto(updatedBooking);
 

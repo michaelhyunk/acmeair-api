@@ -3,9 +3,11 @@ package com.acmeair.api.service;
 import com.acmeair.api.model.Booking;
 import com.acmeair.api.model.BookingStatus;
 import com.acmeair.api.model.Flight;
+import com.acmeair.api.model.Passenger;
 import com.acmeair.api.repository.BookingRepository;
 import com.acmeair.api.repository.FlightRepository;
 import com.acmeair.api.dto.booking.BookingRequestDto;
+import com.acmeair.api.dto.booking.BookingUpdateDto;
 import com.acmeair.api.exception.BookingNotFoundException;
 import com.acmeair.api.exception.FlightNotFoundException;
 import com.acmeair.api.exception.NoSeatAvailableException;
@@ -26,6 +28,14 @@ public class BookingServiceTest {
     private FlightRepository flightRepository;
     private BookingService service;
 
+    private Passenger testPassenger = new Passenger(
+        UUID.randomUUID(),
+        "Joe",
+        "Smith",
+        "Joe.Smith@acmeair.co.nz",
+        ""
+    );
+
     @BeforeEach
     void setup() {
         bookingRepository = mock(BookingRepository.class);
@@ -39,13 +49,13 @@ public class BookingServiceTest {
             new Booking(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                UUID.randomUUID(),
+                testPassenger,
                 BookingStatus.CONFIRMED
             ),
             new Booking(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                UUID.randomUUID(),
+                testPassenger,
                 BookingStatus.CANCELLED
             )
         );
@@ -62,7 +72,7 @@ public class BookingServiceTest {
         Booking booking = new Booking(
                 id,
                 UUID.randomUUID(),
-                UUID.randomUUID(),
+                testPassenger,
                 BookingStatus.CONFIRMED
             );
         
@@ -101,7 +111,7 @@ public class BookingServiceTest {
 
         when(flightRepository.findById(flightId)).thenReturn(Optional.of(flight));
 
-        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID(), UUID.randomUUID());
         dto.setFlightId(flightId);
 
         Booking booking = service.createBooking(dto);
@@ -115,7 +125,7 @@ public class BookingServiceTest {
 
     @Test
     void createBooking_shouldFail_whenFlightNotFound() {
-        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID(), UUID.randomUUID());
         dto.setFlightId(UUID.randomUUID());
 
         FlightNotFoundException thrown = assertThrows(
@@ -141,13 +151,13 @@ public class BookingServiceTest {
         when(flightRepository.findById(flightId)).thenReturn(Optional.of(flight));
 
         List<Booking> existingBookings = List.of(
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED)
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED)
         );
 
         when(bookingRepository.findAll()).thenReturn(existingBookings);
 
-        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
+        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID(), UUID.randomUUID());
         dto.setFlightId(flightId);
 
         NoSeatAvailableException thrown = assertThrows(
@@ -156,42 +166,129 @@ public class BookingServiceTest {
         
         assertTrue(thrown.getMessage().contains(dto.getFlightId().toString()));
     }
-
+    
     @Test
-    void updateBooking_shouldUpdatePassengerAndFlight() {
+    void updateBooking_shouldUpdateEmailAndPassengerNote() {
         UUID bookingId = UUID.randomUUID();
-        UUID originalFlightId = UUID.randomUUID();
-        UUID updatedFlightId = UUID.randomUUID();
-        UUID passengerId = UUID.randomUUID();
+        UUID flightId = UUID.randomUUID();
+
+        Passenger originalPassenger = new Passenger(
+            testPassenger.getId(),
+            testPassenger.getFirstName(),
+            testPassenger.getLastName(),
+            "old.email@acmeair.co.nz",
+            "Old note"
+        );
 
         Booking originalBooking = new Booking(
             bookingId,
-            originalFlightId,
-            passengerId,
+            flightId,
+            originalPassenger,
             BookingStatus.CONFIRMED
         );
-
-        BookingRequestDto updateDto = new BookingRequestDto(passengerId);
-        updateDto.setFlightId(updatedFlightId);
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
         when(bookingRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
+        Passenger updatedPassenger = new Passenger(
+            originalPassenger.getId(),
+            originalPassenger.getFirstName(),
+            originalPassenger.getLastName(),
+            "new.email@acmeair.co.nz",
+            "New note"
+        );
+
+        BookingUpdateDto updateDto = new BookingUpdateDto(flightId, updatedPassenger);
+
         Booking result = service.updateBooking(bookingId, updateDto);
 
-        assertEquals(updatedFlightId, result.getFlightId());
+        assertEquals("new.email@acmeair.co.nz", result.getPassenger().getEmail());
+        assertEquals("New note", result.getPassenger().getPassengerNote());
         verify(bookingRepository).save(result);
     }
 
     @Test
-    void updateBooking_shouldThrowIfNotFound() {
-        UUID id = UUID.randomUUID();
-        when(bookingRepository.findById(id)).thenReturn(Optional.empty());
+    void updateBooking_shouldThrowIfPassengerIdChanged() {
+        UUID bookingId = UUID.randomUUID();
+        UUID flightId = UUID.randomUUID();
 
-        BookingRequestDto dto = new BookingRequestDto(UUID.randomUUID());
-        dto.setFlightId(UUID.randomUUID());
+        Booking originalBooking = new Booking(
+            bookingId,
+            flightId,
+            testPassenger,
+            BookingStatus.CONFIRMED
+        );
 
-        assertThrows(BookingNotFoundException.class, () -> service.updateBooking(id, dto));
+        UUID differentPassengerId = UUID.randomUUID();
+        Passenger invalidPassenger = new Passenger(
+            differentPassengerId, // different ID
+            testPassenger.getFirstName(),
+            testPassenger.getLastName(),
+            "test@acmeair.co.nz",
+            "note"
+        );
+
+        BookingUpdateDto updateDto = new BookingUpdateDto(flightId, invalidPassenger);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateBooking(bookingId, updateDto));
+    }
+
+    @Test
+    void updateBooking_shouldThrowIfFirstNameOrLastNameChanged() {
+        UUID bookingId = UUID.randomUUID();
+        UUID flightId = UUID.randomUUID();
+
+        Booking originalBooking = new Booking(
+            bookingId,
+            flightId,
+            testPassenger,
+            BookingStatus.CONFIRMED
+        );
+
+        Passenger changedNamePassenger = new Passenger(
+            testPassenger.getId(),
+            "ChangedFirstName", // changed
+            testPassenger.getLastName(),
+            testPassenger.getEmail(),
+            testPassenger.getPassengerNote()
+        );
+
+        BookingUpdateDto updateDto = new BookingUpdateDto(flightId, changedNamePassenger);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateBooking(bookingId, updateDto));
+    }
+
+    @Test
+    void updateBooking_shouldThrowIfFlightIdChanged() {
+        UUID bookingId = UUID.randomUUID();
+        UUID flightId = UUID.randomUUID();
+        UUID differentFlightId = UUID.randomUUID();
+
+        Booking originalBooking = new Booking(
+            bookingId,
+            flightId,
+            testPassenger,
+            BookingStatus.CONFIRMED
+        );
+
+        BookingUpdateDto updateDto = new BookingUpdateDto(
+            differentFlightId, // different flight
+            new Passenger(
+                testPassenger.getId(),
+                testPassenger.getFirstName(),
+                testPassenger.getLastName(),
+                "updated@acmeair.co.nz",
+                "updated note"
+            )
+        );
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(originalBooking));
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateBooking(bookingId, updateDto));
     }
 
     @Test
@@ -202,7 +299,7 @@ public class BookingServiceTest {
         Booking booking = new Booking(
             bookingId,
             flightId,
-            UUID.randomUUID(),
+            testPassenger,
             BookingStatus.CONFIRMED
         );
 
@@ -232,7 +329,7 @@ public class BookingServiceTest {
         Booking booking = new Booking(
             bookingId,
             UUID.randomUUID(),
-            UUID.randomUUID(),
+            testPassenger,
             BookingStatus.CANCELLED);
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
@@ -257,8 +354,8 @@ public class BookingServiceTest {
         UUID flightId = UUID.randomUUID();
 
         List<Booking> bookings = List.of(
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CANCELLED)
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CANCELLED)
         );
 
         when(bookingRepository.findAll()).thenReturn(bookings);
@@ -277,8 +374,8 @@ public class BookingServiceTest {
         UUID flightId = UUID.randomUUID();
 
         List<Booking> bookings = List.of(
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED)
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED)
         );
 
         when(bookingRepository.findAll()).thenReturn(bookings);
@@ -297,8 +394,8 @@ public class BookingServiceTest {
         UUID flightId = UUID.randomUUID();
 
         List<Booking> bookings = List.of(
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CONFIRMED),
-            new Booking(UUID.randomUUID(), flightId, UUID.randomUUID(), BookingStatus.CANCELLED)
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CONFIRMED),
+            new Booking(UUID.randomUUID(), flightId, testPassenger, BookingStatus.CANCELLED)
         );
 
         when(bookingRepository.findAll()).thenReturn(bookings);

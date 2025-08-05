@@ -3,6 +3,7 @@ package com.acmeair.api.config;
 import com.acmeair.api.model.Booking;
 import com.acmeair.api.model.BookingStatus;
 import com.acmeair.api.model.Flight;
+import com.acmeair.api.model.Passenger;
 import com.acmeair.api.repository.BookingRepository;
 import com.acmeair.api.repository.FlightRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -45,18 +46,26 @@ public class BookingDataSeeder {
             flightRepository.save(flight1);
             flightRepository.save(flight2);
 
+            Passenger passenger1 = new Passenger(
+                UUID.randomUUID(),
+                "Joe",
+                "Smith",
+                "",
+                ""
+            );
+
             // Create and save sample bookings
             Booking booking1 = new Booking(
                 UUID.randomUUID(),
                 flight1Id,
-                UUID.randomUUID(), // passengerId
+                passenger1,
                 BookingStatus.CONFIRMED
             );
 
             Booking booking2 = new Booking(
                 UUID.randomUUID(),
                 flight2Id,
-                UUID.randomUUID(),
+                passenger1,
                 BookingStatus.CONFIRMED
             );
 

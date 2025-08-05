@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.acmeair.api.dto.booking.BookingRequestDto;
+import com.acmeair.api.dto.booking.BookingUpdateDto;
 import com.acmeair.api.exception.BookingNotFoundException;
 import com.acmeair.api.exception.FlightNotFoundException;
 import com.acmeair.api.exception.NoSeatAvailableException;
 import com.acmeair.api.model.Booking;
 import com.acmeair.api.model.BookingStatus;
 import com.acmeair.api.model.Flight;
+import com.acmeair.api.model.Passenger;
 import com.acmeair.api.repository.FlightRepository;
 import com.acmeair.api.repository.BookingRepository;
 
@@ -64,10 +66,18 @@ public class BookingService {
             throw new NoSeatAvailableException(flight.getId());
         }
 
+        Passenger passenger = new Passenger(
+            UUID.randomUUID(),
+            "Joe",
+            "Smith",
+            "Joe.Smith@acmeair.co.nz",
+            "Prefers window seat"
+        );
+
         Booking booking = new Booking(
             UUID.randomUUID(),
             dto.getFlightId(),
-            dto.getPassengerId(),
+            passenger,
             BookingStatus.CONFIRMED
         );
 
@@ -80,10 +90,10 @@ public class BookingService {
         return booking;
     }
 
-    public Booking updateBooking(UUID id, BookingRequestDto dto) {
-        log.info("Updating booking");
-        log.debug("Updating booking {} with new passenger {} and flight {}",
-            id, dto.getPassengerId(), dto.getFlightId());
+    public Booking updateBooking(UUID id, BookingUpdateDto dto) {
+        log.info("Updating passenger details for existing booking");
+        log.debug("Updating passenger details for booking {} with passenger {} and flight {}",
+            id, dto.getPassenger().getId(), dto.getFlightId());
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> {
                 log.debug("Booking to update not found: {}", id);
@@ -91,19 +101,30 @@ public class BookingService {
                 return new BookingNotFoundException(id);
             });
 
-        if (!booking.getPassengerId().equals(dto.getPassengerId())) {
-            log.warn("Attempt to update passengerId for booking");
-            throw new IllegalArgumentException("Updating passengerId is not allowed");
+        Passenger existing = booking.getPassenger();
+        Passenger updated = dto.getPassenger();
+
+        if (!existing.getId().equals(updated.getId())) {
+            throw new IllegalArgumentException("Passenger ID cannot be changed");
         }
-        
-        booking.setFlightId(dto.getFlightId());
 
-        Booking updated = bookingRepository.save(booking);
-        
-        log.info("Booking updated");
-        log.debug("Booking {} updated successfully", id);
+        if (!existing.getFirstName().equals(updated.getFirstName()) ||
+            !existing.getLastName().equals(updated.getLastName())) {
+            throw new IllegalArgumentException("Passenger name cannot be changed");
+        }
 
-        return updated;
+        if (!booking.getFlightId().equals(dto.getFlightId())) {
+            throw new IllegalArgumentException("Flight ID cannot be changed");
+        }
+
+        existing.setEmail(updated.getEmail());
+        existing.setPassengerNote(updated.getPassengerNote());
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        log.info("Updated passenger detail for an existing booking");
+        log.info("Booking {} updated successfully", id);
+        return updatedBooking;
     }
 
     public void cancelBooking(UUID id) {

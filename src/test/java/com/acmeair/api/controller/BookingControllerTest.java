@@ -8,11 +8,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.acmeair.api.dto.booking.BookingRequestDto;
-import com.acmeair.api.dto.booking.BookingResponseDto;
+import com.acmeair.api.dto.booking.*;
 import com.acmeair.api.exception.BookingNotFoundException;
 import com.acmeair.api.mapper.BookingMapper;
 import com.acmeair.api.model.Booking;
+import com.acmeair.api.model.Passenger;
 import com.acmeair.api.model.BookingStatus;
 import com.acmeair.api.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +49,9 @@ public class BookingControllerTest {
     private Booking booking;
     private BookingRequestDto requestDto;
     private BookingResponseDto responseDto;
+    private BookingUpdateDto updateDto;
+
+    private Passenger passenger;
 
     @BeforeEach
     void setup() {
@@ -56,10 +59,13 @@ public class BookingControllerTest {
         flightId = UUID.randomUUID();
         passengerId = UUID.randomUUID();
 
-        booking = new Booking(bookingId, flightId, passengerId, BookingStatus.CONFIRMED);
+        passenger = new Passenger(passengerId, "Joe", "Smith", "Joe.Smith@acmeair.co.nz", "");
 
-        requestDto = new BookingRequestDto(passengerId);
-        requestDto.setFlightId(flightId);
+        booking = new Booking(bookingId, flightId, passenger, BookingStatus.CONFIRMED);
+
+        requestDto = new BookingRequestDto(flightId, passengerId);
+
+        updateDto = new BookingUpdateDto(flightId, passenger);
 
         responseDto = new BookingResponseDto();
         responseDto.setBookingId(bookingId);
@@ -132,7 +138,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(put("/bookings/" + bookingId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(bookingId.toString()));
     }
@@ -145,13 +151,13 @@ public class BookingControllerTest {
 
         mockMvc.perform(put("/bookings/" + bookingId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
+                .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldCancelBookingSuccessfully() throws Exception {
-        mockMvc.perform(delete("/bookings/" + bookingId + "/cancel"))
+        mockMvc.perform(put("/bookings/" + bookingId + "/cancel"))
                 .andExpect(status().isNoContent());
     }
 
@@ -160,7 +166,7 @@ public class BookingControllerTest {
         doThrow(new BookingNotFoundException(bookingId))
             .when(bookingService).cancelBooking(bookingId);
 
-        mockMvc.perform(delete("/bookings/" + bookingId + "/cancel"))
+        mockMvc.perform(put("/bookings/" + bookingId + "/cancel"))
                 .andExpect(status().isNotFound());
     }
 }
