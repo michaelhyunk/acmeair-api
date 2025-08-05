@@ -48,7 +48,7 @@ cd acmeair-api
 
 ### 3. Open the Swagger UI
 ```
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui/index.html
 ```
 
 ---
@@ -66,6 +66,8 @@ http://localhost:8080/swagger-ui.html
 | PUT    | `/bookings/{id}/cancel`    | Cancel a booking      |
 
 All endpoints return appropriate HTTP status codes and error messages.
+Please refer to swagger for more information:
+[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 ---
 
@@ -89,9 +91,9 @@ You should not need to manually verify functionality.
 
 - Each booking is for one passenger and one flight only. Did not consider single booking with multiple passengers
 - For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
-- Seat-level tracking is not implemented. Each booking assumes 1-to-1 relationship between a passenger and a seat, only total seat availability is checked.
-- A `Seat` model was intentionally omitted to keep domain lightweight. This can be introduced later if seat selection, multiple seat bookings become relevant.
-- Because filters with other UUIDs like passengerId, or flightId was not specified, did not fully consider DB relationship. Instead focused heavily on Java and it's difference with .NET
+- Seat-level tracking is not implemented. Each booking assumes 1-to-1 relationship between a passenger and a seat, only total seat availability is checked
+- A `Seat` model was intentionally omitted to keep domain lightweight. This can be introduced later if seat selection, multiple seat bookings become relevant
+- Because filters with other UUIDs like passengerId, or flightId was not specified, did not fully consider DB relationship. Instead focused on domain logic and structural differences vs .NET
 - Booking status is `CONFIRMED` by default, and is `CANCELLED` when cancelled
 - Data is stored entirely in memory as per requirement
 - No authentication or authorization included
@@ -105,11 +107,12 @@ You should not need to manually verify functionality.
 - Global exception formatting (`ErrorResponse`) structure needs improvement
 - Validation errors are not returned in a consistent, client-consumable format
 - Pagination is not implemented for listing endpoints
+- While `ConcurrentHashMap` is used for thread-safe access, no locking or concurrency control is applied. So overbooking may occur in high-concurrency situation.
 - Dockerfile and/or Azure App Service YAML file for deployment is not included
 - Integration tests with real database
 - API versioning, sorting, filtering
 - Retry/backoff strategies (e.g. jitter/delay) are not yet implemented
-- Introduce `TestData.java` as a centralized test fixture to streamline setup, remove duplicated data creation in unit tests, and enforce immutability patterns more cleanly in DTOs
+- Introduce `TestData.java` as a centralized test fixture to streamline setup and remove duplicated data creation in unit tests
 
 ---
 
