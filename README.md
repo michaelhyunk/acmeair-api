@@ -14,7 +14,7 @@ This service allows users to search for flights, book a flight, view or cancel e
 - Update an existing booking
 - Cancel a booking
 
-Several endpoints were implemented beyong the brief to reflect realistic future needs, such as retrieving all bookins or accessing a specific booking by ID.
+Several endpoints were implemented beyong the brief to reflect realistic future needs, such as retrieving all bookings or accessing a specific booking by ID.
 
 ---
 
@@ -66,7 +66,7 @@ http://localhost:8080/swagger-ui/index.html
 | PUT    | `/bookings/{id}/cancel`    | Cancel a booking      |
 
 All endpoints return appropriate HTTP status codes and error messages.
-Please refer to swagger for more information:
+Please refer to the Swagger UI for detailed request/response models, status codes, and query parameters:
 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 ---
@@ -106,11 +106,13 @@ You should not need to manually verify functionality.
 
 - Global exception formatting (`ErrorResponse`) structure needs improvement
 - Validation errors are not returned in a consistent, client-consumable format
-- Pagination is not implemented for listing endpoints
-- While `ConcurrentHashMap` is used for thread-safe access, no locking or concurrency control is applied. So overbooking may occur in high-concurrency situation.
-- Dockerfile and/or Azure App Service YAML file for deployment is not included
+- Basic validation is in place using `@NotNull` in `BookingRequestDto`, but input validation could be expanded to include enum validation, format checks, and stricter constraints via `@Size`, `@Pattern`, etc
+- No rate limiting or API throttling in place. No contraints around requests
+- API versioning is not implemented
+- Pagination is not implemented for listing endpoints 
+- While `ConcurrentHashMap` is used for thread-safe access, no locking or concurrency control is applied. So overbooking may occur in high-concurrency situation
+- Dockerfile and/or Azure App Service YAML file for deployment is not included. However The project is CLI testable and CI/CD-ready. Easily integrated into GitHub Actions or Azure Pipelines
 - Integration tests with real database
-- API versioning, sorting, filtering
 - Retry/backoff strategies (e.g. jitter/delay) are not yet implemented
 - Introduce `TestData.java` as a centralized test fixture to streamline setup and remove duplicated data creation in unit tests
 
@@ -125,7 +127,7 @@ You should not need to manually verify functionality.
 - Mappers translate between layers via MapStruct to reduce boilerplate 
 
 ### Production-Readiness
-- Logging follows best practices (info/debug split, redacted UUIDs in prod)
+- Basic logging is implemented with info/debug splits. However, could be improved by introducing structured logging (e.g., JSON format), correlation IDs, and sensitive data redaction for production environments
 - Swagger is integrated for automated API documentation and contract visibility
 - Controller advice is set up for basic error handling, with room for extension
 - No exposure of internal state on idempotent operations. If booking is already cancelled, the system returns early without calling the database or logging identifiers
@@ -136,3 +138,16 @@ You should not need to manually verify functionality.
 - Controllers are tested via `@WebMvcTest` and mocked services
 - Tests are split by responsibility and cover both success and failure paths
 - Unit tests can be run via CLI and can easily add a job in CI/CD pipelines on build
+
+## Scaling Considerations
+
+While the current implementation satisfies the core API requirements, the following areas would be important for production-scale deployment:
+
+- **Rate Limiting & Throttling**: To prevent abuse and protect backend systems under high load
+- **API Versioning**: To support backward compatibility and safe contract evolution
+- **Pagination & Filtering**: For endpoints like `/flights` or `/bookings` to handle large datasets
+- **Concurrency Control**: Enforce seat availability rules with synchronized updates or optimistic locking
+- **Seat Model & Repository**: Introduce a `Seat` model and `SeatRepository` to manage individual seats, support seat selection, enforce allocation, and handle multi-seat bookings. This allows scaling to seat-class pricing, map-based UI selection, and prevents overbooking via per-seat locking
+- **Retry & Backoff**: For transient failures when integrated with external systems (e.g., DB, queues)
+- **Persistent Storage**: Swap in-memory storage with real database (JPA/PostgreSQL)
+- **Security**: Add authentication (OAuth2/JWT), authorization, and input sanitization
