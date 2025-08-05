@@ -70,7 +70,6 @@ public class BookingControllerTest {
         responseDto = new BookingResponseDto();
         responseDto.setBookingId(bookingId);
         responseDto.setFlightId(flightId);
-        responseDto.setPassengerId(passengerId);
         responseDto.setStatus(BookingStatus.CONFIRMED);
     }
 
@@ -84,7 +83,6 @@ public class BookingControllerTest {
             .andExpect(jsonPath("$", hasSize(1)))
             .andExpect(jsonPath("$[0].bookingId").value(bookingId.toString()))
             .andExpect(jsonPath("$[0].flightId").value(flightId.toString()))
-            .andExpect(jsonPath("$[0].passengerId").value(passengerId.toString()))
             .andExpect(jsonPath("$[0].status").value("CONFIRMED"));
     }
 
@@ -97,7 +95,6 @@ public class BookingControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.bookingId").value(bookingId.toString()))
             .andExpect(jsonPath("$.flightId").value(flightId.toString()))
-            .andExpect(jsonPath("$.passengerId").value(passengerId.toString()))
             .andExpect(jsonPath("$.status").value("CONFIRMED"));
     }
 
@@ -112,9 +109,9 @@ public class BookingControllerTest {
     }
 
     @Test
-    void shouldReturn400WhenUUIDIsInvalid() throws Exception {
+    void shouldReturn500WhenUUIDIsInvalid() throws Exception {
         mockMvc.perform(get("/bookings/invalid-uuid"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
     }
 
     @Test

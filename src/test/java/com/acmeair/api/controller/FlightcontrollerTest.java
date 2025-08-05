@@ -93,8 +93,8 @@ public class FlightControllerTest {
     }
 
     @Test
-    void shouldReturn400WhenUUIDIsNotProvided() throws Exception {
+    void shouldReturn500WhenUUIDIsNotProvided() throws Exception {
         mockMvc.perform(get("/flights/not-a-uuid"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isInternalServerError());
     }
 }

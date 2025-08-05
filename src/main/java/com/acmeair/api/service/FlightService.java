@@ -27,11 +27,10 @@ public class FlightService {
     }
 
     public Flight getFlightById(UUID id) {
-        log.debug("Looking up flight by ID: {}", id);
+        log.info("Looking up flight by ID");
         Optional<Flight> result = repository.findById(id);
 
         if (result.isEmpty()) {
-            log.debug("Flight not found for ID: {}", id);
             log.warn("Flight not found");
             throw new FlightNotFoundException(id);
         }

@@ -101,12 +101,12 @@ You should not need to manually verify functionality.
 - No authentication or authorization included
 - Passenger IDs are UUIDs with no additional validation
 - Trunk-based development was used instead of branching, considering the scope and time constraints
-
+- Booking IDs are generated server-side to ensure uniqueness and prevent client-side conflicts
 ---
 
 ## Known Limitations / TODOs
 
-- Global exception is in place `RestExceptionHandler.java`, however response needs to be defined further
+- Global exception is in place `RestExceptionHandler.java`, however it's not fully polished yet. Has few 404s and one generic handler
 - Basic validation is limited to `@NotNull` on DTOs. Field-level validation (e.g., `@Email`, `@Size`) and enum/value constraints are not yet implemented
 - Request DTOs do not validate unknown fields; extra properties in incoming JSON are silently ignored by default
 - No rate limiting or API throttling in place. No constraints around requests
@@ -117,6 +117,7 @@ You should not need to manually verify functionality.
 - Integration tests with real database
 - Retry/backoff strategies (e.g. jitter/delay) are not yet implemented
 - Introduce `TestData.java` as a centralized test fixture to streamline setup and remove duplicated data creation in unit tests
+- Basic logging is implemented with a focus on minimizing exposure of sensitive dat ain production. Logs are intentionally limited to opersational events only. Future improvments could include, structured logging, correlation IDs for tracing requests and dedicated log redaction for sensitive fields
 
 ---
 
@@ -129,11 +130,10 @@ You should not need to manually verify functionality.
 - Mappers translate between layers via MapStruct to reduce boilerplate 
 
 ### Production-Readiness
-- Basic logging is implemented with info/debug splits. However, could be improved by introducing structured logging (e.g., JSON format), correlation IDs, and sensitive data redaction for production environments
 - Swagger is integrated for automated API documentation and contract visibility
 - Controller advice is set up for basic error handling, with room for extension
 - No exposure of internal state on idempotent operations. If booking is already cancelled, the system returns early without calling the database or logging identifiers
-- Repositories are interface-based so switching to a real DB is trivial
+- Repositories are interface-based so switching to a real DB is trivial, will need to introduce `@Async`
 
 ### Testability
 - Services are unit-tested in isolation with mock dependencies

@@ -37,11 +37,9 @@ public class BookingService {
     }
 
     public Booking getBookingById(UUID id) {
-        log.debug("Fetching booking with ID {}", id);
         Optional<Booking> result = bookingRepository.findById(id);
 
         if (result.isEmpty()) {
-            log.debug("Booking not found: {}", id);
             log.warn("Booking not found");
             throw new BookingNotFoundException(id);
         }
@@ -52,11 +50,8 @@ public class BookingService {
     // Assumption: One passenger per booking for simplicity.
     public Booking createBooking(BookingRequestDto dto) {
         log.info("Creating new booking");
-        log.debug("Attempting to create booking for passenger {} on flight {}",
-            dto.getPassengerId(), dto.getFlightId());
         Flight flight = flightRepository.findById(dto.getFlightId())
             .orElseThrow(() -> {
-                log.debug("Flight not found: {}", dto.getFlightId());
                 log.warn("Flight not found");
                 return new FlightNotFoundException(dto.getFlightId());
             });
@@ -84,19 +79,14 @@ public class BookingService {
         bookingRepository.save(booking);
 
         log.info("Booking successfully created");
-        log.debug("Booking created: {} (passenger {}, flight {})",
-            booking.getId(), dto.getPassengerId(), dto.getFlightId());
 
         return booking;
     }
 
     public Booking updateBooking(UUID id, BookingUpdateDto dto) {
         log.info("Updating passenger details for existing booking");
-        log.debug("Updating passenger details for booking {} with passenger {} and flight {}",
-            id, dto.getPassenger().getId(), dto.getFlightId());
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> {
-                log.debug("Booking to update not found: {}", id);
                 log.warn("Booking to update not found");
                 return new BookingNotFoundException(id);
             });
@@ -120,33 +110,29 @@ public class BookingService {
         existing.setEmail(updated.getEmail());
         existing.setPassengerNote(updated.getPassengerNote());
 
-        Booking updatedBooking = bookingRepository.save(booking);
-
         log.info("Updated passenger detail for an existing booking");
-        log.info("Booking {} updated successfully", id);
+
+        Booking updatedBooking = bookingRepository.save(booking);
         return updatedBooking;
     }
 
     public void cancelBooking(UUID id) {
         log.info("Cancelling booking");
-        log.debug("Cancelling booking with ID {}", id);
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> {
                 log.warn("Booking to cancel not found");
-                log.debug("Booking to cancel not found: {}", id);
                 return new BookingNotFoundException(id);
             });
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             log.info("Booking already cancelled");
-            log.debug("Booking {} is already cancelled — no action taken", id);
             return;
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
-        bookingRepository.save(booking);
         log.info("Booking cancelled");
-        log.debug("Booking {} marked as CANCELLED", id);
+
+        bookingRepository.save(booking);
     }
 
     private boolean isFlightFull(UUID flightId, int totalSeats) {
