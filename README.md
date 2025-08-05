@@ -14,7 +14,7 @@ This service allows users to search for flights, book a flight, view or cancel e
 - Update an existing booking
 - Cancel a booking
 
-Several endpoints were implemented beyong the brief to reflect realistic future needs, such as retrieving all bookings or accessing a specific booking by ID.
+Several endpoints were implemented beyond the brief to support realistic future use cases, such as listing all bookings in addition to retrieving a booking by ID
 
 ---
 
@@ -62,12 +62,14 @@ http://localhost:8080/swagger-ui/index.html
 | GET    | `/bookings`         | List all bookings     |
 | GET    | `/bookings/{id}`    | Get booking by ID     |
 | POST   | `/bookings`         | Create a booking      |
-| PUT    | `/bookings/{id}`    | Update a booking      |
+| PUT    | `/bookings/{id}`    | Update passenger contact details (email and note only)     |
 | PUT    | `/bookings/{id}/cancel`    | Cancel a booking      |
 
 All endpoints return appropriate HTTP status codes and error messages.
 Please refer to the Swagger UI for detailed request/response models, status codes, and query parameters:
 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+Note: Input validation is minimal; request DTOs use `@NotNull` but lack field-level constraints like `@Email` or `@Size`. See "Known Limitations" for more details.
 
 ---
 
@@ -93,8 +95,8 @@ You should not need to manually verify functionality.
 - For Booking and BookingRequestDto, passengerId is immutable and only flightId is editable
 - Seat-level tracking is not implemented. Each booking assumes 1-to-1 relationship between a passenger and a seat, only total seat availability is checked
 - A `Seat` model was intentionally omitted to keep domain lightweight. This can be introduced later if seat selection, multiple seat bookings become relevant
-- Because filters with other UUIDs like passengerId, or flightId was not specified, did not fully consider DB relationship. Instead focused on domain logic and structural differences vs .NET
-- Booking status is `CONFIRMED` by default, and is `CANCELLED` when cancelled
+- Filtering by secondary identifiers such as `passengerId` or `flightId` was not part of the requirements. As a result, no endpoint-level filters or relational constraints were implemented. The focus remained on core domain logic rather than full query capability or relational modeling
+- Each booking is created with a status of `CONFIRMED` by default. The status transitions to `CANCELLED` when the booking is cancelled. No other intermediate statuses (e.g., `PENDING`, `EXPIRED`) are currently defined
 - Data is stored entirely in memory as per requirement
 - No authentication or authorization included
 - Passenger IDs are UUIDs with no additional validation
@@ -104,14 +106,14 @@ You should not need to manually verify functionality.
 
 ## Known Limitations / TODOs
 
-- Global exception formatting (`ErrorResponse`) structure needs improvement
-- Validation errors are not returned in a consistent, client-consumable format
-- Basic validation is in place using `@NotNull` in `BookingRequestDto`, but input validation could be expanded to include enum validation, format checks, and stricter constraints via `@Size`, `@Pattern`, etc
-- No rate limiting or API throttling in place. No contraints around requests
+- Global exception is in place `RestExceptionHandler.java`, however response needs to be defined further
+- Basic validation is limited to `@NotNull` on DTOs. Field-level validation (e.g., `@Email`, `@Size`) and enum/value constraints are not yet implemented
+- Request DTOs do not validate unknown fields; extra properties in incoming JSON are silently ignored by default
+- No rate limiting or API throttling in place. No constraints around requests
 - API versioning is not implemented
 - Pagination is not implemented for listing endpoints 
 - While `ConcurrentHashMap` is used for thread-safe access, no locking or concurrency control is applied. So overbooking may occur in high-concurrency situation
-- Dockerfile and/or Azure App Service YAML file for deployment is not included. However The project is CLI testable and CI/CD-ready. Easily integrated into GitHub Actions or Azure Pipelines
+- Dockerfile and/or Azure App Service YAML file for deployment is not included. However, the project is CLI testable and CI/CD-ready. Easily integrated into GitHub Actions or Azure Pipelines
 - Integration tests with real database
 - Retry/backoff strategies (e.g. jitter/delay) are not yet implemented
 - Introduce `TestData.java` as a centralized test fixture to streamline setup and remove duplicated data creation in unit tests
@@ -136,8 +138,8 @@ You should not need to manually verify functionality.
 ### Testability
 - Services are unit-tested in isolation with mock dependencies
 - Controllers are tested via `@WebMvcTest` and mocked services
-- Tests are split by responsibility and cover both success and failure paths
-- Unit tests can be run via CLI and can easily add a job in CI/CD pipelines on build
+- Tests are organized by responsibility and cover both positive and negative scenarios
+- Unit tests can be executed via CLI and easily integrated into CI/CD pipelines
 
 ## Scaling Considerations
 
